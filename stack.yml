@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  culebrita:
+    image: ghcr.io/esteven2003/snake:latest  
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.esteven-snake-game.entrypoints=http"
+        - "traefik.http.routers.esteven-snake-game.rule=Host(`snake.byronrm.com`)"
+        - "traefik.http.middlewares.snake-game-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.esteven-snake-game.middlewares=snake-game-redirect"
+        
+        - "traefik.http.routers.esteven-snake-game-secure.entrypoints=https"
+        - "traefik.http.routers.esteven-snake-game-secure.rule=Host(`snake.byronrm.com`)"
+        - "traefik.http.routers.esteven-snake-game-secure.tls=true"
+        - "traefik.http.routers.esteven-snake-game-secure.tls.certresolver=http"
+        - "traefik.http.routers.esteven-snake-game-secure.service=esteven-snake-game-sr"
+        
+        - "traefik.http.services.esteven-snake-game-sr.loadbalancer.server.port=5000"
+        - "traefik.docker.network=traefik-public"
+
+networks:
+  traefik-public:
+    external: true
